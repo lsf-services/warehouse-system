@@ -2,7 +2,6 @@
 
 use anyhow::Result;
 use sqlx::PgPool;
-use warehouse_models::*;
 
 pub mod repositories;
 pub mod utils;
@@ -26,17 +25,6 @@ impl Database {
     pub fn warehouses(&self) -> WarehouseRepository {
         WarehouseRepository::new(self.pool.clone())
     }
-
-    // Comment out until other repositories are implemented
-    // /// Get item repository
-    // pub fn items(&self) -> ItemRepository {
-    //     ItemRepository::new(self.pool.clone())
-    // }
-
-    // /// Get project repository
-    // pub fn projects(&self) -> ProjectRepository {
-    //     ProjectRepository::new(self.pool.clone())
-    // }
 
     /// Health check - test database connectivity
     pub async fn health_check(&self) -> Result<bool> {
