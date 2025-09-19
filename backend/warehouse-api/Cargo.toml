@@ -1,0 +1,33 @@
+[package]
+name = "warehouse-api"
+version = "0.1.0"
+edition = "2021"
+description = "HTTP API for warehouse management system"
+
+[[bin]]
+name = "server"
+path = "src/main.rs"
+
+[dependencies]
+# Internal crates
+warehouse-models = { path = "../warehouse-models" }
+warehouse-db = { path = "../warehouse-db" }
+warehouse-core = { path = "../warehouse-core" }
+
+# External dependencies
+axum = { version = "0.7", features = ["macros"] }
+axum-extra = { version = "0.9", features = ["typed-header"] }
+tower = "0.4"
+tokio = { version = "1.35", features = ["full"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid", "json", "migrate"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+dotenvy = "0.15"
+validator = { version = "0.18", features = ["derive"] }
+chrono = { version = "0.4", features = ["serde"] }
+tower-http = { version = "0.6.6", features = ["cors", "trace", "compression-br"] }
+uuid = { version = "1.18.1", features = ["v4", "serde"] }

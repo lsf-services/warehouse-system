@@ -1,0 +1,48 @@
+FROM rust:1.75-slim
+
+WORKDIR /app
+
+# Install development dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install SQLx CLI for migrations
+RUN cargo install sqlx-cli --no-default-features --features postgres
+
+# Install cargo-watch for auto-reload
+RUN cargo install cargo-watch
+
+# Copy Cargo files
+COPY Cargo.toml Cargo.lock ./
+
+# Create workspace structure
+RUN mkdir -p warehouse-models/src warehouse-db/src warehouse-core/src warehouse-api/src
+
+# Copy individual Cargo.toml files
+COPY warehouse-models/Cargo.toml ./warehouse-models/
+COPY warehouse-db/Cargo.toml ./warehouse-db/
+COPY warehouse-core/Cargo.toml ./warehouse-core/
+COPY warehouse-api/Cargo.toml ./warehouse-api/
+
+# Create dummy source files to cache dependencies
+RUN echo "fn main() {}" > warehouse-api/src/main.rs && \
+    ---
+
+## 2.7 Final Verification dan Testing
+
+### Run Complete Setup
+```bash
+# Pastikan berada di direktori project
+cd ~/projects/warehouse-system
+
+# Jalankan setup script
+echo "Running development setup..."
+./scripts/dev-setup.sh
+
+# Check environment status
+echo "Checking environment status..."
+./scripts/check-env.sh

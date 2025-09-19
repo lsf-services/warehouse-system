@@ -1,0 +1,80 @@
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: warehouse_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-warehouse_db}
+      POSTGRES_USER: ${POSTGRES_USER:-warehouse_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-warehouse_pass}
+      POSTGRES_HOST_AUTH_METHOD: ${POSTGRES_HOST_AUTH_METHOD:-trust}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - warehouse_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-warehouse_user} -d ${POSTGRES_DB:-warehouse_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: warehouse_redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - warehouse_network
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Backend service (akan diaktifkan setelah kode selesai)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: warehouse_backend
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-warehouse_user}:${POSTGRES_PASSWORD:-warehouse_pass}@postgres:5432/${POSTGRES_DB:-warehouse_db}
+      REDIS_URL: redis://redis:6379
+      RUST_LOG: ${RUST_LOG:-debug}
+      SERVER_PORT: 8000
+      ENVIRONMENT: development
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - warehouse_network
+    volumes:
+      - ./backend:/app
+      - cargo_cache:/usr/local/cargo/registry
+      - target_cache:/app/target
+    profiles:
+      - backend  # Tidak akan start secara default
+    restart: unless-stopped
+
+networks:
+  warehouse_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  cargo_cache:
+  target_cache:

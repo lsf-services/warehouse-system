@@ -1,0 +1,20 @@
+[package]
+name = "warehouse-core"
+version = "0.1.0"
+edition = "2021"
+description = "Core business logic for warehouse management system"
+
+[dependencies]
+warehouse-models = { path = "../warehouse-models" }
+warehouse-db = { path = "../warehouse-db" }
+anyhow = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+serde_json = "1.0"
+tokio = { version = "1.35", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.6", features = ["v4"] }
+dotenvy = "0.15"
+axum = { version = "0.7", features = ["macros"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres"] }
